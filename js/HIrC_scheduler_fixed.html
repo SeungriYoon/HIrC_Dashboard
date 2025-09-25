@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연구센터 일정 관리 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            background-color: white;
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+        }
+        .tab-inactive {
+            color: #6b7280;
+        }
+        .tab-inactive:hover {
+            color: #2563eb;
+            background-color: #f9fafb;
+        }
+        .schedule-item {
+            transition: all 0.2s ease;
+        }
+        .schedule-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto p-6 min-h-screen">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- 헤더 -->
+            <div class="bg-blue-600 text-white p-6">
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    📋 연구센터 일정 관리 시스템
+                </h1>
+                <p class="mt-2 text-blue-100">센터장 및 부센터장의 일정을 효율적으로 관리하세요</p>
+            </div>
+
+            <!-- 탭 네비게이션 -->
+            <div class="flex border-b bg-gray-100">
+                <button onclick="showTab('input')" id="tab-input" class="flex items-center gap-2 px-6 py-4 font-medium transition-colors tab-active">
+                    📝 일정 입력
+                </button>
+                <button onclick="showTab('query')" id="tab-query" class="flex items-center gap-2 px-6 py-4 font-medium transition-colors tab-inactive">
+                    🔍 일정 조회
+                </button>
+                <button onclick="showTab('available')" id="tab-available" class="flex items-center gap-2 px-6 py-4 font-medium transition-colors tab-inactive">
+                    ⭐ 공통 가능시간
+                </button>
+                <button onclick="showTab('list')" id="tab-list" class="flex items-center gap-2 px-6 py-4 font-medium transition-colors tab-inactive">
+                    📋 전체 일정
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- 일정 입력 탭 -->
+                <div id="content-input" class="tab-content">
+                    <div class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-4 text-gray-800">자연어 일정 입력</h2>
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <h3 class="font-medium text-blue-800 mb-2">입력 예시:</h3>
+                                <div class="text-sm text-blue-700 space-y-1">
+                                    <p>• "센터장 12월 25일 오후 2시 회의실에서 회의"</p>
+                                    <p>• "부센터장 1월 3일 10:30 연구실에서 실험"</p>
+                                    <p>• "센터장 2월 14일 3시간 일정 (중요 회의)"</p>
+                                    <p>• "부센터장 3월 1일 14:00-17:00 세미나실"</p>
+                                </div>
+                            </div>
+                            <textarea
+                                id="inputText"
+                                placeholder="일정을 자연어로 입력하세요... (예: 센터장 12월 25일 3시간 일정 회의실에서 중요 회의)"
+                                class="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            ></textarea>
+                            <div class="mt-4 flex gap-2">
+                                <button
+                                    onclick="addSchedule()"
+                                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                >
+                                    ➕ 일정 추가
+                                </button>
+                                <button
+                                    onclick="clearInput()"
+                                    class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors flex items-center gap-2"
+                                >
+                                    🗑️ 지우기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 일정 조회 탭 -->
+                <div id="content-query" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <div>
+                            <h2 class="text-xl font-semibold mb-4 text-gray-800">일정 조회</h2>
+                            <div class="flex gap-4 mb-4">
+                                <input
+                                    type="text"
+                                    id="queryText"
+                                    placeholder="조회할 내용을 입력하세요 (예: 센터장님 일정)"
+                                    class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                />
+                                <button
+                                    onclick="querySchedule()"
+                                    class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                                >
+                                    🔍 검색
+                                </button>
+                            </div>
+                            <div id="queryResult" class="bg-gray-50 p-4 rounded-lg hidden">
+                                <h3 class="font-medium mb-2 text-gray-800">조회 결과:</h3>
+                                <div id="queryResultText" class="text-sm text-gray-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 공통 가능시간 탭 -->
+                <div id="content-available" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800">센터장 & 부센터장 공통 가능시간</h2>
+                        <div class="bg-green-50 p-6 rounded-lg">
+                            <h3 class="font-medium mb-4 text-green-800 flex items-center gap-2">
+                                ⭐ 두 분 모두 가능한 날짜 (향후 30일)
+                            </h3>
+                            <div id="availableDates" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                <!-- 가능한 날짜들이 여기에 표시됩니다 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 전체 일정 탭 -->
+                <div id="content-list" class="tab-content hidden">
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-xl font-semibold text-gray-800">전체 일정 목록</h2>
+                            <div class="flex gap-2">
+                                <button
+                                    onclick="downloadCSV()"
+                                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                                >
+                                    📥 CSV 다운로드
+                                </button>
+                                <button
+                                    onclick="clearAllSchedules()"
+                                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                                >
+                                    🗑️ 전체 삭제
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="scheduleTable" class="overflow-x-auto">
+                            <!-- 일정 테이블이 여기에 표시됩니다 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let schedules = [];
+        let activeTab = 'input';
+
+        // 로컬 스토리지에서 일정 불러오기
+        function loadSchedules() {
+            const saved = localStorage.getItem('researchCenterSchedules');
+            if (saved) {
+                schedules = JSON.parse(saved);
+            }
+        }
+
+        // 로컬 스토리지에 일정 저장
+        function saveSchedules() {
+            localStorage.setItem('researchCenterSchedules', JSON.stringify(schedules));
+        }
+
+        // 탭 전환
+        function showTab(tabName) {
+            // 모든 탭 콘텐츠 숨기기
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+
+            // 모든 탭 버튼 비활성화
+            const tabs = document.querySelectorAll('[id^="tab-"]');
+            tabs.forEach(tab => {
+                tab.className = tab.className.replace('tab-active', 'tab-inactive');
+            });
+
+            // 선택된 탭 활성화
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            const activeTabElement = document.getElementById('tab-' + tabName);
+            activeTabElement.className = activeTabElement.className.replace('tab-inactive', 'tab-active');
+            
+            activeTab = tabName;
+
+            // 필요한 경우 데이터 업데이트
+            if (tabName === 'available') {
+                updateAvailableDates();
+            } else if (tabName === 'list') {
+                updateScheduleTable();
+            }
+        }
+
+        // 입력창 지우기
+        function clearInput() {
+            document.getElementById('inputText').value = '';
+        }
+
+        // 자연어 일정 파싱 (개선된 버전)
+        function parseScheduleInput(text) {
+            const results = [];
+            
+            // 센터장/부센터장 식별
+            const personRegex = /(센터장|부센터장)/g;
+            const personMatches = [];
+            let personMatch;
+            
+            while ((personMatch = personRegex.exec(text)) !== null) {
+                personMatches.push({
+                    person: personMatch[1],
+                    index: personMatch.index
+                });
+            }
+            
+            if (personMatches.length === 0) {
+                return { success: false, error: '센터장 또는 부센터장을 명시해주세요.' };
+            }
+
+            for (let p = 0; p < personMatches.length; p++) {
+                const person = personMatches[p].person;
+                const startIndex = personMatches[p].index;
+                
+                // 해당 사람의 일정 부분 추출
+                let scheduleText = text.substring(startIndex);
+                if (p + 1 < personMatches.length) {
+                    scheduleText = text.substring(startIndex, personMatches[p + 1].index);
+                }
+
+                const dates = [];
+                const times = [];
+                const locations = [];
+                const notes = [];
+
+                // 날짜 추출 (개선된 정규식)
+                const dateRegex = /(\d{1,2})월\s*(\d{1,2})일/g;
+                let dateMatch;
+                while ((dateMatch = dateRegex.exec(scheduleText)) !== null) {
+                    dates.push(dateMatch[1] + '월 ' + dateMatch[2] + '일');
+                }
+
+                // 시간 추출 (개선된 정규식들)
+                let timeMatch;
+                
+                // 시간대 형식 (14:00-17:00)
+                const timeRangeRegex = /(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/g;
+                while ((timeMatch = timeRangeRegex.exec(scheduleText)) !== null) {
+                    times.push(timeMatch[1] + ':' + timeMatch[2] + '-' + timeMatch[3] + ':' + timeMatch[4]);
+                }
+                
+                // X시간 일정
+                const hourRegex = /(\d{1,2})시간\s*일정/g;
+                while ((timeMatch = hourRegex.exec(scheduleText)) !== null) {
+                    const duration = parseInt(timeMatch[1]);
+                    const startHour = 14;
+                    const endHour = startHour + duration;
+                    times.push(startHour + ':00-' + endHour + ':00');
+                    notes.push(duration + '시간 소요 예정');
+                }
+                
+                // 일반 시간 (이미 시간대가 없을 때만)
+                if (times.length === 0) {
+                    const normalTimeRegex = /(\d{1,2}):(\d{2})/g;
+                    while ((timeMatch = normalTimeRegex.exec(scheduleText)) !== null) {
+                        times.push(timeMatch[1] + ':' + timeMatch[2]);
+                    }
+                }
+                
+                // 오전/오후 (이미 시간이 없을 때만)
+                if (times.length === 0) {
+                    const ampmRegex = /(오전|오후)\s*(\d{1,2}):?(\d{2})?/g;
+                    while ((timeMatch = ampmRegex.exec(scheduleText)) !== null) {
+                        const hour = timeMatch[2];
+                        const minute = timeMatch[3] || '00';
+                        times.push(timeMatch[1] + ' ' + hour + ':' + minute);
+                    }
+                }
+
+                // 장소 추출 (개선된 정규식)
+                const locationRegex = /([^\n]*(?:실|관|센터|회의실|사무실|연구실|세미나실))/g;
+                let locationMatch;
+                while ((locationMatch = locationRegex.exec(scheduleText)) !== null) {
+                    const location = locationMatch[1].trim();
+                    if (location && locations.indexOf(location) === -1) {
+                        locations.push(location);
+                    }
+                }
+
+                // 비고 사항 추출
+                const noteKeywords = ['회의', '미팅', '실험', '세미나', '발표', '교육', '면담', '검토', '논의', '협의', '중요'];
+                for (const keyword of noteKeywords) {
+                    if (scheduleText.indexOf(keyword) !== -1) {
+                        const found = notes.some(note => note.indexOf(keyword) !== -1);
+                        if (!found) {
+                            notes.push(keyword);
+                        }
+                    }
+                }
+
+                // 괄호 안의 내용
+                const parenthesesRegex = /\(([^)]+)\)/g;
+                let parenthesesMatch;
+                while ((parenthesesMatch = parenthesesRegex.exec(scheduleText)) !== null) {
+                    const note = parenthesesMatch[1].trim();
+                    if (notes.indexOf(note) === -1) {
+                        notes.push(note);
+                    }
+                }
+
+                // 결과 조합
+                if (dates.length > 0) {
+                    for (let d = 0; d < dates.length; d++) {
+                        const timeValue = times[d] || times[0] || '시간 미정';
+                        
+                        results.push({
+                            person: person,
+                            date: dates[d],
+                            time: timeValue,
+                            location: locations[d] || locations[0] || '장소 미정',
+                            notes: notes.join(', ') || '',
+                            id: Date.now() + Math.random()
+                        });
+                    }
+                } else {
+                    // 날짜가 없으면 기본 항목 생성
+                    const timeValue = times[0] || '시간 미정';
+                    
+                    results.push({
+                        person: person,
+                        date: '날짜 미정',
+                        time: timeValue,
+                        location: locations[0] || '장소 미정',
+                        notes: notes.join(', ') || '',
+                        id: Date.now() + Math.random()
+                    });
+                }
+            }
+
+            return { success: true, schedules: results };
+        }
+
+        // 일정 추가
+        function addSchedule() {
+            const inputText = document.getElementById('inputText').value.trim();
+            if (!inputText) {
+                alert('일정을 입력해주세요.');
+                return;
+            }
+
+            const parseResult = parseScheduleInput(inputText);
+            
+            if (parseResult.success) {
+                for (const schedule of parseResult.schedules) {
+                    schedules.push(schedule);
+                }
+                document.getElementById('inputText').value = '';
+                saveSchedules();
+                alert('일정이 성공적으로 추가되었습니다!');
+            } else {
+                alert(parseResult.error);
+            }
+        }
+
+        // 일정 조회 (개선된 버전)
+        function querySchedule() {
+            const queryText = document.getElementById('queryText').value.trim().toLowerCase();
+            if (!queryText) {
+                alert('조회할 내용을 입력해주세요.');
+                return;
+            }
+
+            let results = [];
+
+            if (queryText.indexOf('센터장') !== -1) {
+                results = schedules.filter(schedule => schedule.person === '센터장');
+            } else if (queryText.indexOf('부센터장') !== -1) {
+                results = schedules.filter(schedule => schedule.person === '부센터장');
+            } else {
+                results = schedules.filter(schedule => 
+                    schedule.person.toLowerCase().includes(queryText) ||
+                    schedule.date.toLowerCase().includes(queryText) ||
+                    schedule.location.toLowerCase().includes(queryText) ||
+                    schedule.notes.toLowerCase().includes(queryText)
+                );
+            }
+
+            const queryResultDiv = document.getElementById('queryResult');
+            const queryResultText = document.getElementById('queryResultText');
+
+            if (results.length === 0) {
+                queryResultText.innerHTML = '<p class="text-gray-500">해당하는 일정이 없습니다.</p>';
+            } else {
+                let resultHTML = '<div class="space-y-2">';
+                for (const schedule of results) {
+                    const personClass = schedule.person === '센터장' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                    resultHTML += `
+                        <div class="p-3 bg-white rounded border schedule-item">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2 py-1 rounded-full text-sm font-medium ${personClass}">${schedule.person}</span>
+                                <span class="text-sm text-gray-600">${schedule.date} ${schedule.time}</span>
+                            </div>
+                            <div class="text-sm text-gray-700">📍 ${schedule.location}</div>
+                            ${schedule.notes ? `<div class="text-xs text-gray-500 mt-1">📝 ${schedule.notes}</div>` : ''}
+                        </div>
+                    `;
+                }
+                resultHTML += '</div>';
+                queryResultText.innerHTML = resultHTML;
+            }
+
+            queryResultDiv.classList.remove('hidden');
+        }
+
+        // 공통 가능시간 업데이트 (개선된 버전)
+        function updateAvailableDates() {
+            const directorSchedules = schedules.filter(s => s.person === '센터장');
+            const viceDirectorSchedules = schedules.filter(s => s.person === '부센터장');
+            
+            // 모든 예약된 날짜 수집
+            const allBusyDates = [
+                ...directorSchedules.map(s => s.date),
+                ...viceDirectorSchedules.map(s => s.date)
+            ];
+
+            // 향후 30일 중 사용 가능한 날짜 찾기
+            const availableDates = [];
+            const today = new Date();
+            
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                const dateString = (date.getMonth() + 1) + '월 ' + date.getDate() + '일';
+                
+                const isBusy = allBusyDates.some(busyDate => 
+                    busyDate === dateString || busyDate === '날짜 미정'
+                );
+                
+                if (!isBusy) {
+                    availableDates.push(dateString);
+                }
+            }
+
+            const availableDatesDiv = document.getElementById('availableDates');
+            
+            if (availableDates.length > 0) {
+                let html = '';
+                for (let i = 0; i < Math.min(availableDates.length, 12); i++) {
+                    html += `<div class="bg-white p-3 rounded border text-center text-green-700 font-medium hover:bg-green-50 transition-colors">${availableDates[i]}</div>`;
+                }
+                availableDatesDiv.innerHTML = html;
+            } else {
+                availableDatesDiv.innerHTML = '<p class="text-green-700">현재 공통 가능한 날짜가 없습니다.</p>';
+            }
+        }
+
+        // 일정 테이블 업데이트 (개선된 버전)
+        function updateScheduleTable() {
+            const scheduleTableDiv = document.getElementById('scheduleTable');
+            
+            if (schedules.length > 0) {
+                let tableHTML = `
+                    <table class="w-full border-collapse bg-white rounded-lg overflow-hidden shadow">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">담당자</th>
+                                <th class="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">날짜</th>
+                                <th class="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">시간</th>
+                                <th class="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">장소</th>
+                                <th class="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">비고</th>
+                                <th class="border border-gray-300 px-4 py-3 text-left font-medium text-gray-700">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                for (let i = 0; i < schedules.length; i++) {
+                    const schedule = schedules[i];
+                    const rowClass = i % 2 === 0 ? 'bg-gray-50' : 'bg-white';
+                    const personClass = schedule.person === '센터장' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                    
+                    tableHTML += `
+                        <tr class="${rowClass} schedule-item">
+                            <td class="border border-gray-300 px-4 py-3">
+                                <span class="px-2 py-1 rounded-full text-sm font-medium ${personClass}">${schedule.person}</span>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-3">${schedule.date}</td>
+                            <td class="border border-gray-300 px-4 py-3">${schedule.time}</td>
+                            <td class="border border-gray-300 px-4 py-3">${schedule.location}</td>
+                            <td class="border border-gray-300 px-4 py-3 text-sm text-gray-600">${schedule.notes || '-'}</td>
+                            <td class="border border-gray-300 px-4 py-3">
+                                                                 <button onclick="deleteSchedule(${i})" class="text-red-600 hover:text-red-800 text-sm">🗑️ 삭제</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                tableHTML += '</tbody></table>';
+                scheduleTableDiv.innerHTML = tableHTML;
+            } else {
+                scheduleTableDiv.innerHTML = `
+                    <div class="text-center py-12 bg-gray-50 rounded-lg">
+                        <div class="text-6xl mb-4">📅</div>
+                        <p class="text-gray-500 text-lg">아직 등록된 일정이 없습니다.</p>
+                        <p class="text-gray-400">일정 입력 탭에서 새로운 일정을 추가해보세요.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 일정 삭제
+        function deleteSchedule(index) {
+            if (confirm('이 일정을 삭제하시겠습니까?')) {
+                schedules.splice(index, 1);
+                saveSchedules();
+                updateScheduleTable();
+            }
+        }
+
+        // 전체 일정 삭제
+        function clearAllSchedules() {
+            if (confirm('모든 일정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                schedules = [];
+                saveSchedules();
+                updateScheduleTable();
+                alert('모든 일정이 삭제되었습니다.');
+            }
+        }
+
+        // CSV 다운로드 (개선된 버전)
+        function downloadCSV() {
+            if (schedules.length === 0) {
+                alert('다운로드할 일정이 없습니다.');
+                return;
+            }
+
+            const csvRows = ['담당자,날짜,시간,장소,비고'];
+            
+            for (const schedule of schedules) {
+                const row = [
+                    schedule.person,
+                    schedule.date,
+                    schedule.time,
+                    schedule.location,
+                    schedule.notes
+                ].map(field => `"${field}"`).join(',');
+                csvRows.push(row);
+            }
+            
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `research_center_schedule_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Enter 키 이벤트 리스너
+        document.getElementById('inputText').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                addSchedule();
+            }
+        });
+
+        document.getElementById('queryText').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                querySchedule();
+            }
+        });
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSchedules();
+            updateScheduleTable();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>휴머노이드 후각 디스플레이센터 통합 관리 시스템</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8A6BB1 0%, #8A6BB1 50%, #1a1a2e 100%);
+            color: #F5F5F5;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 380px;
+            background: rgba(22, 33, 62, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 2px solid rgba(78, 205, 196, 0.4);
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .header {
+            padding: 25px 35px;
+            background: rgba(22, 33, 62, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(78, 205, 196, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #4ecdc4, #ff6b6b, #ffa726);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px;
+            border-radius: 15px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: #b0b0b0;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: #4ecdc4;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.6);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+
+        .section {
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .section h3 {
+            color: #4ecdc4;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #b0b0b0;
+            font-weight: 600;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 15px 18px;
+            border: 2px solid rgba(78, 205, 196, 0.3);
+            border-radius: 15px;
+            background: rgba(26, 26, 46, 0.9);
+            color: #eee;
+            font-size: 15px;
+        }
+
+        /* 지식그래프 스타일 */
+        .graph-container {
+            position: relative;
+            height: calc(100vh - 160px);
+            width: 100%;
+            background: linear-gradient(135deg, rgba(138, 107, 177, 0.5) 0%, rgba(138, 107, 177, 0.5) 50%, rgba(26, 26, 46, 0.5) 100%);
+            border-radius: 20px;
+            margin: 20px;
+            display: flex;
+            align-items: center; /* flex-start -> center로 변경 */
+            justify-content: center;
+            flex-direction: column;
+            padding: 25px; /* 상단 여백을 10px로 수정 */
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .graph-placeholder {
+            text-align: center;
+            color: #4ecdc4;
+        }
+
+        .graph-placeholder h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .graph-placeholder p {
+            font-size: 16px;
+            color: #b0b0b0;
+            margin-bottom: 20px;
+        }
+
+        .researcher-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            max-height: 400px;
+            overflow-y: auto;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .researcher-card {
+            background: #9e85be;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-height: 180px;
+        }
+
+        /* 새로 추가된 CSS */
+        .researcher-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(78, 205, 196, 0.5);
+            flex-shrink: 0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .researcher-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .researcher-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 연구자 모달 상세 정보 스타일 */
+        .modal-researcher-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-researcher-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(78, 205, 196, 0.2);
+        }
+
+        .researcher-image.large {
+            width: 100px;
+            height: 100px;
+            border-width: 4px;
+            font-size: 36px;
+        }
+
+        .modal-researcher-info {
+            flex: 1;
+        }
+
+        .modal-researcher-info .researcher-name {
+            font-size: 28px;
+            margin-bottom: 5px;
+            color: #4ecdc4;
+        }
+
+        .modal-researcher-info .researcher-role {
+            font-size: 18px;
+            color: #ffa726;
+            margin-bottom: 5px;
+        }
+
+        .modal-researcher-info .researcher-dept {
+            font-size: 16px;
+            color: #b0b0b0;
+        }
+
+        .modal-researcher-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 15px;
+            color: #e2e8f0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4ecdc4;
+            flex-shrink: 0;
+            width: 80px;
+        }
+
+        .info-value {
+            flex: 1;
+        }
+
+        .modal-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(78, 205, 196, 0.2);
+        }
+
+        .researcher-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.3);
+        }
+
+        .researcher-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+
+        .researcher-role {
+            font-size: 14px;
+            color: #ffa726;
+            margin-bottom: 5px;
+        }
+
+        .researcher-dept {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .researcher-keywords {
+            font-size: 11px;
+            color: #e2e8f0;
+            background: rgba(78, 205, 196, 0.1);
+            padding: 5px 10px;
+            border-radius: 10px;
+            display: block;
+        }
+
+        /* 캘린더 스타일 */
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 20px;
+            margin: 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px;
+            border-bottom: 2px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e2e8f0;
+            margin: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .calendar-day-header {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            background: white;
+            min-height: 120px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: #f0fdfa;
+            transform: scale(1.02);
+        }
+
+        .calendar-day.today {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .calendar-day.selected {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .calendar-day.other-month {
+            background: #f8fafc;
+            color: #94a3b8;
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .event-item {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-bottom: 2px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .event-item.high-priority {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .event-item.low-priority {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .calendar-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .form-section h4 {
+            color: #4ecdc4;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .upcoming-events {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .upcoming-event {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .upcoming-event.urgent {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #4ecdc4;
+            margin-bottom: 5px;
+        }
+
+        .event-date {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .event-description {
+            font-size: 13px;
+            color: #e2e8f0;
+            margin-top: 5px;
+        }
+
+        /* 성과 관리 스타일 */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.3);
+        }
+
+        .achievement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .achievement-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4ecdc4;
+        }
+
+        .achievement-count {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative; /* 추가 */
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+    
+        .progress-fill {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(78, 205, 196, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4ecdc4;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #a0a0a0;
+            margin-top: 5px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 2px solid #4ecdc4;
+            color: #4ecdc4;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        /* 알림 스타일 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .loading-message {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .zoom-btn {
+            width: 45px;
+            height: 45px;
+            background: rgba(22, 33, 62, 0.9);
+            border: 2px solid #4ecdc4;
+            color: #4ecdc4;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .zoom-btn:hover {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .save-graph-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        /* 연구자 카드 모달 */
+        .researcher-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .researcher-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(22, 33, 62, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid rgba(78, 205, 196, 0.4);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #4ecdc4;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* 연구 협업 탭 스타일 */
+        .collaboration-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .collab-tab-btn {
+            background: transparent;
+            color: #b0b0b0;
+            border: 2px solid rgba(78, 205, 196, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .collab-tab-btn.active {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            border-color: #4ecdc4;
+        }
+
+        .collab-content {
+            display: none;
+        }
+
+        .collab-content.active {
+            display: block;
+        }
+
+        /* 그룹 2 마인드맵 스타일 */
+        .mindmap-container {
+            width: 100%;
+            height: calc(100vh - 200px);
+            position: relative;
+            background: rgba(250, 250, 250, 0.97);
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: visible;
+        }
+
+        .center-node {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 240px;
+            height: 90px;
+            background: linear-gradient(45deg, #8B5A8C, #6B7FBD);
+            border-radius: 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            animation: pulse 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .center-node h1 {
+            font-size: 22px;
+            margin-bottom: 3px;
+        }
+
+        .center-node p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .researcher-node {
+            position: absolute;
+            width: 300px;
+            min-height: 200px;
+            border-radius: 15px;
+            padding: 20px;
+            color: #333;
+            font-weight: 500;
+            cursor: default;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e0e0e0;
+            background: #fff;
+            z-index: 5;
+        }
+
+        .researcher-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .researcher-node h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 8px;
+            color: #333;
+        }
+
+        .research-content {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .research-content .goal {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            border-left: 3px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .research-content .tech {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 6px;
+            border-radius: 6px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .research-content .issue {
+            background: rgba(255, 100, 100, 0.1);
+            padding: 6px;
+            border-radius: 6px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        /* 사각형 배치 */
+        .kim-jm {
+            top: 22%;
+            left: 35%;
+            transform: translate(-50%, -50%);
+            background: #E8F4FD;
+        }
+        .lee-sg {
+            top: 22%;
+            left: 65%;
+            transform: translate(-50%, -50%);
+            background: #FFF2E8;
+        }
+        .park-sh {
+            top: 78%;
+            left: 35%;
+            transform: translate(-50%, -50%);
+            background: #F0F8E8;
+        }
+        .kim-jh {
+            top: 78%;
+            left: 65%;
+            transform: translate(-50%, -50%);
+            background: #F8E8F0;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .date-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(100, 100, 100, 0.1);
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid rgba(100, 100, 100, 0.2);
+            z-index: 20;
+        }
+
+        .save-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #6B7FBD;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: background 0.2s;
+            z-index: 20;
+        }
+
+        .save-btn:hover {
+            background: #8B5A8C;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <h3>📊 연구센터 통계</h3>
+                <div class="stats">
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalResearchers">18</span>
+                            <div class="stat-label">연구원</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalLinks">17</span>
+                            <div class="stat-label">협업</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalAchievements">131</span>
+                            <div class="stat-label">성과</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalTasks">43</span>
+                            <div class="stat-label">과제</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🔍 필터 & 뷰</h3>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-group="all">전체</button>
+                    <button class="filter-btn" data-group="1">1그룹</button>
+                    <button class="filter-btn" data-group="2">2그룹</button>
+                    <button class="filter-btn" data-group="3">3그룹</button>
+                    <button class="filter-btn" data-group="4">4그룹</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>🎛️ 컨트롤</h3>
+                <button class="btn" id="exportDataBtn">데이터 내보내기</button>
+                <button class="btn secondary" id="loadSampleDataBtn">샘플 데이터 로드</button>
+                <button class="btn danger" id="resetDataBtn">데이터 초기화</button>
+            </div>
+
+            <div class="section">
+                <h3>🔍 검색</h3>
+                <div class="input-group">
+                    <input type="text" id="searchInput" placeholder="연구자 또는 키워드 검색..."
+                        onkeyup="searchResearchers(this.value)">
+                </div>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <div class="logo">🧠 휴머노이드 후각 디스플레이센터</div>
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="knowledge-graph">지식그래프</button>
+                    <button class="tab-btn" data-tab="collaboration">연구 협업</button>
+                    <button class="tab-btn" data-tab="schedule">일정관리</button>
+                    <button class="tab-btn" data-tab="achievements">성과관리</button>
+                    <button class="tab-btn" data-tab="data-management">데이터 관리</button>
+                </div>
+            </div>
+
+            <!-- 지식그래프 탭 -->
+            <div id="knowledge-graph" class="tab-content active">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn" id="cardViewBtn">카드 뷰</button>
+                    <button class="btn" id="networkViewBtn">네트워크 뷰</button>
+                </div>
+                <div id="cardView" style="display: block;">
+                    <div class="graph-container">
+                        <button class="btn save-graph-btn" id="saveCardViewImageBtn">이미지로 저장</button>
+                        <div class="graph-placeholder">
+                            <h2>🔬 연구원 네트워크</h2>
+                            <p>휴머노이드 후각 디스플레이센터의 18명 연구진</p>
+                        </div>
+                        <div class="researcher-grid" id="researcherGrid">
+                            <!-- 연구원 카드들이 동적으로 생성됩니다 -->
+                        </div>
+                    </div>
+                </div>
+                <div id="networkView" style="display: none;">
+                    <div class="graph-container" style="position:relative;">
+                        <button class="btn save-graph-btn" id="saveNetworkViewImageBtn">이미지로 저장</button>
+                        <svg id="networkGraph" width="100%" height="600"></svg>
+                        <div id="zoomControls" style="position:absolute;top:30px;right:30px;z-index:10;display:flex;flex-direction:column;gap:8px;">
+                            <button class="zoom-btn" id="zoom-in">+</button>
+                            <button class="zoom-btn" id="zoom-out">-</button>
+                            <button class="zoom-btn" id="zoom-reset">⌂</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 연구 협업 탭 -->
+            <div id="collaboration" class="tab-content">
+                <div class="collaboration-tabs">
+                    <button class="collab-tab-btn active" data-collab-tab="overview">전체 개요</button>
+                    <button class="collab-tab-btn" data-collab-tab="group1">1그룹</button>
+                    <button class="collab-tab-btn" data-collab-tab="group2">2그룹</button>
+                    <button class="collab-tab-btn" data-collab-tab="group3">3그룹</button>
+                    <button class="collab-tab-btn" data-collab-tab="group4">4그룹</button>
+                </div>
+
+                <!-- 전체 개요 -->
+                <div id="collab-overview" class="collab-content active">
+                    <div class="section">
+                        <h3>🤝 연구 협업 현황</h3>
+                        <div class="researcher-grid">
+                            <div class="researcher-card">
+                                <div class="researcher-image">
+                                    <img src="js/images/group1.jpg" alt="Group 1">
+                                </div>
+                                <div class="researcher-info">
+                                    <div class="researcher-name">1그룹 - 후각 소재</div>
+                                    <div class="researcher-role">7명 연구진</div>
+                                    <div class="researcher-dept">책임연구원: 오진우</div>
+                                    <div class="researcher-keywords">M13파지, 유무기소재, 광학기술, 탄소나노튜브</div>
+                                </div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-image">
+                                    <img src="js/images/group2.jpg" alt="Group 2">
+                                </div>
+                                <div class="researcher-info">
+                                    <div class="researcher-name">2그룹 - 후각 소자</div>
+                                    <div class="researcher-role">5명 연구진</div>
+                                    <div class="researcher-dept">책임연구원: 김종만</div>
+                                    <div class="researcher-keywords">EHD프린팅, 센싱메커니즘, 나노복합소재 기반 후각 소자 개발</div>
+                                </div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-image">
+                                    <img src="js/images/group3.jpg" alt="Group 3">
+                                </div>
+                                <div class="researcher-info">
+                                    <div class="researcher-name">3그룹 - 후각 시스템</div>
+                                    <div class="researcher-role">3명 연구진</div>
+                                    <div class="researcher-dept">책임연구원: 서민호</div>
+                                    <div class="researcher-keywords">센서회로, 하드웨어, 무선통신</div>
+                                </div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-image">
+                                    <img src="js/images/group4.jpg" alt="Group 4">
+                                </div>
+                                <div class="researcher-info">
+                                    <div class="researcher-name">4그룹 - 후각 데이터 처리</div>
+                                    <div class="researcher-role">3명 연구진</div>
+                                    <div class="researcher-dept">책임연구원: 김윤학</div>
+                                    <div class="researcher-keywords">빅데이터, 딥러닝, 패턴분석</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 1그룹 -->
+                <div id="collab-group1" class="collab-content">
+                    <div class="section">
+                        <h3>1그룹 - 후각 소재 연구</h3>
+                        <div class="researcher-grid">
+                            <div class="researcher-card">
+                                <div class="researcher-name">오진우 (책임연구원)</div>
+                                <div class="researcher-role">나노에너지공학과</div>
+                                <div class="researcher-keywords">M13파지, 유전자조작, 바이오센서, 광학센서</div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-name">정병국</div>
+                                <div class="researcher-role">화공생명공학</div>
+                                <div class="researcher-keywords">유무기소재, 박막형성, 후각수용체</div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-name">한동욱</div>
+                                <div class="researcher-role">광메카트로닉스공학과</div>
+                                <div class="researcher-keywords">광학기술, 전자코, 전자혀, 비색센서</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2그룹 -->
+                <div id="collab-group2" class="collab-content">
+                    <div class="mindmap-container" id="group2Mindmap">
+                        <button class="save-btn" id="saveMindmapBtn">이미지로 저장</button>
+                        <div class="date-badge">2025.07.15 연구 진행 현황</div>
+                        <div class="center-node">
+                            <h1>HIrC 제2그룹</h1>
+                            <p>후각 소자 연구</p>
+                        </div>
+                        <!-- Researcher Nodes -->
+                        <div class="researcher-node kim-jm">
+                            <h3>👨‍🔬 김종만 교수</h3>
+                            <div class="research-content">
+                                <div class="goal">
+                                    <strong>🎯 목표:</strong> 거미 감각기관 모사 크랙 기반 센서
+                                </div>
+                                <div class="tech">
+                                    <strong>🔧 기술:</strong> Platinum 박막 + 크랙 구조
+                                </div>
+                                <div class="tech">
+                                    <strong>🧬 융합:</strong> M13 박테리오파지 적용
+                                </div>
+                                <div class="issue">
+                                    <strong>⚠️ 과제:</strong> 크랙 패턴 재현성 부족
+                                </div>
+                                <div class="issue">
+                                    <strong>🔍 검토:</strong> 포화 응답 곡선 분석
+                                </div>
+                            </div>
+                        </div>
+                        <div class="researcher-node lee-sg">
+                            <h3>👨‍🔬 이승기 교수</h3>
+                            <div class="research-content">
+                                <div class="goal">
+                                    <strong>🎯 목표:</strong> 저항+커패시턴스 가스 센서
+                                </div>
+                                <div class="tech">
+                                    <strong>🔧 기술:</strong> M13 파지 + 그래핀 센서
+                                </div>
+                                <div class="tech">
+                                    <strong>📊 성과:</strong> 습도 반응 센서 구현
+                                </div>
+                                <div class="issue">
+                                    <strong>⚠️ 과제:</strong> VOCs 가스 센싱 저항 변화
+                                </div>
+                                <div class="issue">
+                                    <strong>🔧 필요:</strong> IDE 패턴 표준화
+                                </div>
+                            </div>
+                        </div>
+                        <div class="researcher-node park-sh">
+                            <h3>👨‍🔬 박석희 교수</h3>
+                            <div class="research-content">
+                                <div class="goal">
+                                    <strong>🎯 목표:</strong> M13-CNT 하이브리드 3D 센서
+                                </div>
+                                <div class="tech">
+                                    <strong>🔧 기술:</strong> EHD 기반 CNT+M13 센서
+                                </div>
+                                <div class="tech">
+                                    <strong>🖨️ 방법:</strong> EHD jet printing 3D 포털
+                                </div>
+                                <div class="tech">
+                                    <strong>💡 혁신:</strong> Grayscale 보정 정확도 향상
+                                </div>
+                                <div class="issue">
+                                    <strong>🔍 최적화:</strong> DLP 프린터 광 강도 조절
+                                </div>
+                            </div>
+                        </div>
+                        <div class="researcher-node kim-jh">
+                            <h3>👩‍🔬 김지희 교수</h3>
+                            <div class="research-content">
+                                <div class="goal">
+                                    <strong>🎯 목표:</strong> 캐리어 증폭 신호 강화
+                                </div>
+                                <div class="tech">
+                                    <strong>🔧 기술:</strong> CM (노이즈↓) vs Avalanche (증폭↑)
+                                </div>
+                                <div class="tech">
+                                    <strong>🧪 소재:</strong> 양자점, 2D 물질, Pentacene
+                                </div>
+                                <div class="tech">
+                                    <strong>📈 발견:</strong> 밴드갭 4배 에너지에서 증폭
+                                </div>
+                                <div class="issue">
+                                    <strong>🔬 계획:</strong> QD-M13 헤테로 구조 최적화
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                                        <!-- 3그룹 -->
+                <div id="collab-group3" class="collab-content">
+                    <div class="mindmap-container" id="group3Mindmap">
+                        <button class="save-btn" id="saveMindmapBtn3">이미지로 저장</button>
+                        <div class="date-badge">2025.07.24 연구 진행 현황</div>
+                        <div class="center-node">
+                            <h1>🔬 HIrC 제3그룹</h1>
+                            <p>후각 시스템 연구</p>
+                        </div>
+                        <!-- 송명관 박사 노드 -->
+                        <div class="researcher-node song-mg" style="top:25%;left:15%;background:linear-gradient(135deg,#E8F5E8,#F0FFF0);">
+                            <h3>👨‍🔬 송명관 박사</h3>
+                            <div class="research-content">
+                                <div class="goal"><strong>🎯 목표:</strong> M13 기반 가스 센서 소자 개발</div>
+                                <div class="tech"><strong>🔧 소재:</strong> Perovskite + M13 박테리오파지 도핑</div>
+                                <div class="tech"><strong>⚗️ 공정:</strong> 유리기판 전극패터닝 → M13 스핀코팅 → 큐어링(100°C, 5분)</div>
+                                <div class="result"><strong>📊 성과:</strong> 암모니아 10~100ppm, H₂S 1ppm 수준 감지</div>
+                                <div class="result"><strong>✨ 효과:</strong> 선택성↑, 반응속도↑, 리커버리 타임↓</div>
+                                <div class="issue"><strong>⚠️ 과제:</strong> 황화수소 센서의 초기 재현성 문제 개선</div>
+                                <div class="plan"><strong>🔍 계획:</strong> MOF 물질 합성 및 필터 제조</div>
+                            </div>
+                        </div>
+                        <!-- 서민호 교수 노드 -->
+                        <div class="researcher-node seo-mh" style="top:25%;left:66%;background:linear-gradient(135deg,#E0F6FF,#F0F8FF);">
+                            <h3>👨‍🔬 서민호 교수</h3>
+                            <div class="research-content">
+                                <div class="goal"><strong>🎯 목표:</strong> 센서 계측 하드웨어 & 필터 기술</div>
+                                <div class="tech"><strong>🔧 시스템:</strong> 저항형 센서 + 어레이 + 온습도 측정 예정</div>
+                                <div class="tech"><strong>💡 혁신:</strong> 플렉서블 웨어러블 디바이스 구현</div>
+                                <div class="tech"><strong>🌡️ 기능:</strong> 외부 온도 보정 알고리즘 확보</div>
+                                <div class="result"><strong>📈 실험:</strong> 팔라듐 센서 + Sivert's 법칙 적용</div>
+                                <div class="tech"><strong>🔬 필터:</strong> MOF + 전기방사 필터 구조</div>
+                                <div class="plan"><strong>🔍 예정:</strong> 수분 침투 실험 & 보정 알고리즘 개발</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 4그룹 -->
+                <div id="collab-group4" class="collab-content">
+                    <div class="section">
+                        <h3>4그룹 - 후각 데이터 처리 연구</h3>
+                        <div class="researcher-grid">
+                            <div class="researcher-card">
+                                <div class="researcher-name">김윤학 (책임연구원)</div>
+                                <div class="researcher-role">생명의료정보학</div>
+                                <div class="researcher-keywords">빅데이터, 질병진단, 기계학습, 패턴분석</div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-name">임희창</div>
+                                <div class="researcher-role">기계공학</div>
+                                <div class="researcher-keywords">딥러닝, 노이즈제거, 패턴인식</div>
+                            </div>
+                            <div class="researcher-card">
+                                <div class="researcher-name">김현민</div>
+                                <div class="researcher-role">수학</div>
+                                <div class="researcher-keywords">빅데이터, 텐서분석, 특징추출</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 일정관리 탭 -->
+            <div id="schedule" class="tab-content">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <h2 style="color: #333; font-size: 24px; font-weight: 700;">연구 일정 관리</h2>
+                        <div class="calendar-nav">
+                            <button class="nav-btn" id="prevMonthBtn">◀ 이전</button>
+                            <span id="currentMonth" style="color: #333; font-size: 18px; font-weight: 600; min-width: 150px; text-align: center;"></span>
+                            <button class="nav-btn" id="nextMonthBtn">다음 ▶</button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- 캘린더 그리드가 동적으로 생성됩니다 -->
+                    </div>
+
+                    <div class="calendar-form">
+                        <div class="form-section">
+                            <h4>📅 일정 추가</h4>
+                            <div class="input-group">
+                                <label>일정 제목</label>
+                                <input type="text" id="eventTitle" placeholder="일정 제목을 입력하세요">
+                            </div>
+                            <div class="input-group">
+                                <label>일정 유형</label>
+                                <select id="eventType">
+                                    <option value="paper_deadline">논문 마감</option>
+                                    <option value="conference_presentation">학회 발표</option>
+                                    <option value="grant_application">연구비 신청</option>
+                                    <option value="seminar">세미나</option>
+                                    <option value="experiment">실험 일정</option>
+                                    <option value="meeting">회의</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>우선순위</label>
+                                <select id="eventPriority">
+                                    <option value="high">높음</option>
+                                    <option value="medium">중간</option>
+                                    <option value="low">낮음</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>설명</label>
+                                <textarea id="eventDescription" placeholder="상세 설명을 입력하세요" rows="3"></textarea>
+                            </div>
+                            <button class="btn" id="addEventBtn">일정 추가</button>
+                        </div>
+
+                        <div class="form-section">
+                            <h4>🔔 다가오는 일정</h4>
+                            <div class="upcoming-events" id="upcomingEvents">
+                                <!-- 다가오는 일정이 동적으로 표시됩니다 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 성과관리 탭 -->
+            <div id="achievements" class="tab-content">
+                <div class="collaboration-tabs">
+                    <button class="collab-tab-btn active" data-achievement-tab="summary">성과 요약</button>
+                    <button class="collab-tab-btn" data-achievement-tab="2024">2024년 성과</button>
+                </div>
+
+                <div id="achievement-summary" class="collab-content active">
+                    <div class="achievements-grid">
+                        <!-- 기존 성과 요약 카드들 -->
+                    </div>
+                    <div style="padding: 20px;">
+                        <!-- 기존 성과 추가 폼 -->
+                    </div>
+                </div>
+
+                <div id="achievement-2024" class="collab-content">
+                    <div class="section">
+                        <h3>2024년 연구 성과</h3>
+                        <div id="achievements2024Grid" class="achievements-grid" style="display: block;">
+                            <!-- 2024년 성과가 여기에 표시됩니다. -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 데이터 관리 탭 -->
+            <div id="data-management" class="tab-content">
+                <div class="section">
+                    <h3>📊 성과 추가</h3>
+                    <div class="input-group">
+                        <label>성과 유형</label>
+                        <select id="achievementType">
+                            <option value="paper">논문 발표</option>
+                            <option value="patent">특허 등록</option>
+                            <option value="conference">학회 발표</option>
+                            <option value="award">수상</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>제목</label>
+                        <input type="text" id="achievementTitle" placeholder="성과 제목을 입력하세요">
+                    </div>
+                    <div class="input-group">
+                        <label>연구자</label>
+                        <select id="achievementResearcher">
+                            <option value="">연구자를 선택하세요</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>날짜</label>
+                        <input type="date" id="achievementDate">
+                    </div>
+                    <div class="input-group">
+                        <label>설명</label>
+                        <textarea id="achievementDescription" placeholder="상세 설명을 입력하세요" rows="3"></textarea>
+                    </div>
+                    <button class="btn" id="addAchievementBtn">성과 추가</button>
+                </div>
+
+                <div class="section">
+                    <h3>👥 연구자 관리</h3>
+                    <div class="input-group">
+                        <label>연구자 선택</label>
+                        <select id="editResearcherSelect">
+                            <option value="">연구자를 선택하세요</option>
+                        </select>
+                    </div>
+                    <div id="researcherEditForm" style="display: none;">
+                        <div class="input-group">
+                            <label>이름</label>
+                            <input type="text" id="editResearcherName" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label>역할</label>
+                            <input type="text" id="editResearcherRole">
+                        </div>
+                        <div class="input-group">
+                            <label>소속</label>
+                            <input type="text" id="editResearcherDepartment">
+                        </div>
+                        <div class="input-group">
+                            <label>키워드 (쉼표로 구분)</label>
+                            <input type="text" id="editResearcherKeywords">
+                        </div>
+                        <button class="btn" id="updateResearcherBtn">연구자 정보 수정</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>💾 데이터 백업 & 복원</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn" id="backupDataBtn">전체 데이터 백업</button>
+                        <button class="btn secondary" id="exportCsvBtn">CSV로 내보내기</button>
+                        <input type="file" id="importDataFile" accept=".json" style="display: none;">
+                        <button class="btn secondary" id="importDataBtn">데이터 가져오기</button>
+                        <button class="btn danger" id="resetAllDataBtn">모든 데이터 초기화</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📈 통계 정보</h3>
+                    <div class="stats">
+                        <div class="stat-grid">
+                            <div class="stat-item">
+                                <span class="stat-value" id="statTotalResearchers">18</span>
+                                <div class="stat-label">총 연구자</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="statTotalAchievements">0</span>
+                                <div class="stat-label">총 성과</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="statTotalCollaborations">17</span>
+                                <div class="stat-label">협력 관계</div>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="statLastUpdated">-</span>
+                                <div class="stat-label">마지막 업데이트</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 연구자 카드 모달 -->
+    <div id="researcherModal" class="researcher-modal">
+        <div class="modal-content" style="position: relative;">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div id="modalResearcherContent">
+                <!-- 연구자 상세 정보가 동적으로 표시됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 성과 상세 모달 -->
+    <div id="achievementDetailModal" class="researcher-modal">
+        <div class="modal-content" style="position: relative;">
+            <div id="achievementDetailModalContent">
+                <!-- 성과 상세 정보가 동적으로 표시됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

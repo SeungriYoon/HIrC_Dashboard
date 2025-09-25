@@ -1,0 +1,80 @@
+{
+    "visualization": {
+        "nodeSize": {
+            "minSize": 20,
+            "maxSize": 80,
+            "paperWeight": 5,
+            "patentWeight": 8,
+            "awardWeight": 10
+        },
+        "edgeWeight": {
+            "minWeight": 1,
+            "maxWeight": 8,
+            "collaborationMultiplier": 2
+        },
+        "colors": {
+            "group1": "#E8F4FD",
+            "group2": "#FFF2E8",
+            "group3": "#F0F8E8",
+            "group4": "#F8E8F0",
+            "defaultNode": "#4ecdc4",
+            "selectedNode": "#ff6b6b",
+            "edge": "rgba(78, 205, 196, 0.6)"
+        },
+        "layout": {
+            "forceStrength": -300,
+            "linkDistance": 100,
+            "centerForce": 0.1
+        }
+    },
+    "filters": {
+        "minAchievements": 0,
+        "maxAchievements": 20,
+        "showInactiveCollaborations": false,
+        "groupVisibility": {
+            "group1": true,
+            "group2": true,
+            "group3": true,
+            "group4": true
+        }
+    },
+    "export": {
+        "imageFormat": "png",
+        "imageQuality": 0.9,
+        "csvDelimiter": ",",
+        "jsonIndent": 2
+    },
+    "notifications": {
+        "duration": 3000,
+        "position": "top-right",
+        "showAnimations": true
+    },
+    "calendar": {
+        "workingDays": [1, 2, 3, 4, 5],
+        "holidayColor": "#ff6b6b",
+        "eventColors": {
+            "paper_deadline": "#ef4444",
+            "conference_presentation": "#3b82f6",
+            "grant_application": "#10b981",
+            "seminar": "#8b5cf6",
+            "experiment": "#f59e0b",
+            "meeting": "#6b7280"
+        }
+    },
+    "achievements": {
+        "targets": {
+            "papers": 30,
+            "patents": 15,
+            "conferences": 25,
+            "awards": 10,
+            "cooperation": 20,
+            "education": 30
+        },
+        "priorities": {
+            "paper": 1.0,
+            "patent": 1.5,
+            "conference": 0.8,
+            "award": 2.0
+        }
+    }
+}

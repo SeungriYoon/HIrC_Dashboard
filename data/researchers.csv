@@ -1,0 +1,4 @@
+﻿id,name,title,affiliation,location,department,group_id,keywords,role
+researcher_001,김철수,교수,한국대학교,서울,컴퓨터공학과,1,"AI,머신러닝,딥러닝",책임연구원
+researcher_002,이영희,부교수,한국대학교,서울,전자공학과,1,"센서,IoT,임베디드",공동연구원
+researcher_003,박민수,교수,기술대학교,대전,데이터사이언스과,2,"빅데이터,분석,시각화",책임연구원

@@ -1,0 +1,138 @@
+[
+    {
+        "id": "collab_001",
+        "source": "researcher_001",
+        "target": "researcher_003",
+        "weight": 3,
+        "type": "joint_paper",
+        "description": "M13파지 기반 광학센서 공동연구"
+    },
+    {
+        "id": "collab_002",
+        "source": "researcher_001",
+        "target": "researcher_004",
+        "weight": 2,
+        "type": "joint_project",
+        "description": "나노에너지공학 융합연구"
+    },
+    {
+        "id": "collab_003",
+        "source": "researcher_001",
+        "target": "researcher_006",
+        "weight": 1,
+        "type": "consultation",
+        "description": "나노분석 기술 자문"
+    },
+    {
+        "id": "collab_004",
+        "source": "researcher_004",
+        "target": "researcher_006",
+        "weight": 2,
+        "type": "joint_paper",
+        "description": "탄소나노튜브 물성평가 공동연구"
+    },
+    {
+        "id": "collab_005",
+        "source": "researcher_002",
+        "target": "researcher_012",
+        "weight": 1,
+        "type": "material_sharing",
+        "description": "박막기술 소재 공유"
+    },
+    {
+        "id": "collab_006",
+        "source": "researcher_008",
+        "target": "researcher_009",
+        "weight": 2,
+        "type": "joint_paper",
+        "description": "EHD프린팅 센싱메커니즘 연구"
+    },
+    {
+        "id": "collab_007",
+        "source": "researcher_008",
+        "target": "researcher_010",
+        "weight": 1,
+        "type": "equipment_sharing",
+        "description": "프린팅 장비 공동 사용"
+    },
+    {
+        "id": "collab_008",
+        "source": "researcher_010",
+        "target": "researcher_011",
+        "weight": 2,
+        "type": "joint_project",
+        "description": "나노복합소재 특성평가"
+    },
+    {
+        "id": "collab_009",
+        "source": "researcher_011",
+        "target": "researcher_012",
+        "weight": 1,
+        "type": "data_analysis",
+        "description": "멀티스케일분석 데이터 공유"
+    },
+    {
+        "id": "collab_010",
+        "source": "researcher_013",
+        "target": "researcher_015",
+        "weight": 3,
+        "type": "joint_paper",
+        "description": "센서회로 무선통신 융합연구"
+    },
+    {
+        "id": "collab_011",
+        "source": "researcher_013",
+        "target": "researcher_014",
+        "weight": 2,
+        "type": "joint_project",
+        "description": "하드웨어 MOF필터 통합"
+    },
+    {
+        "id": "collab_012",
+        "source": "researcher_016",
+        "target": "researcher_017",
+        "weight": 2,
+        "type": "joint_paper",
+        "description": "빅데이터 딥러닝 알고리즘"
+    },
+    {
+        "id": "collab_013",
+        "source": "researcher_017",
+        "target": "researcher_018",
+        "weight": 1,
+        "type": "consultation",
+        "description": "패턴인식 수학적 모델링"
+    },
+    {
+        "id": "collab_014",
+        "source": "researcher_001",
+        "target": "researcher_008",
+        "weight": 2,
+        "type": "inter_group",
+        "description": "그룹간 협력: 소재-소자 연계"
+    },
+    {
+        "id": "collab_015",
+        "source": "researcher_008",
+        "target": "researcher_013",
+        "weight": 1,
+        "type": "inter_group",
+        "description": "그룹간 협력: 소자-시스템 연계"
+    },
+    {
+        "id": "collab_016",
+        "source": "researcher_013",
+        "target": "researcher_016",
+        "weight": 2,
+        "type": "inter_group",
+        "description": "그룹간 협력: 시스템-데이터처리 연계"
+    },
+    {
+        "id": "collab_017",
+        "source": "researcher_001",
+        "target": "researcher_016",
+        "weight": 1,
+        "type": "inter_group",
+        "description": "그룹간 협력: 소재-데이터처리 연계"
+    }
+]
