@@ -5,7 +5,7 @@
             "maxSize": 60,
             "paperWeight": 2,
             "patentWeight": 3,
-            "awardWeight": 4
+            "awardWeight": 2
         },
         "edgeWeight": {
             "minWeight": 1,
@@ -79,3 +79,4 @@
     }
 
 }
+
