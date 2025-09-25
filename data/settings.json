@@ -1,11 +1,11 @@
 {
     "visualization": {
         "nodeSize": {
-            "minSize": 20,
-            "maxSize": 80,
-            "paperWeight": 5,
-            "patentWeight": 8,
-            "awardWeight": 10
+            "minSize": 25,
+            "maxSize": 60,
+            "paperWeight": 2,
+            "patentWeight": 3,
+            "awardWeight": 4
         },
         "edgeWeight": {
             "minWeight": 1,
@@ -13,18 +13,18 @@
             "collaborationMultiplier": 2
         },
         "colors": {
-            "group1": "#E8F4FD",
-            "group2": "#FFF2E8",
-            "group3": "#F0F8E8",
-            "group4": "#F8E8F0",
+            "group1": "#70c4b8",
+            "group2": "#6ad1c7",
+            "group3": "#68a2a4",
+            "group4": "#68a29a",
             "defaultNode": "#4ecdc4",
             "selectedNode": "#ff6b6b",
-            "edge": "rgba(78, 205, 196, 0.6)"
+            "edge": "#aaa"
         },
         "layout": {
-            "forceStrength": -300,
-            "linkDistance": 100,
-            "centerForce": 0.1
+            "forceStrength": -400,
+            "linkDistance": 120,
+            "centerForce": 0.2
         }
     },
     "filters": {
@@ -77,4 +77,5 @@
             "award": 2.0
         }
     }
+
 }
